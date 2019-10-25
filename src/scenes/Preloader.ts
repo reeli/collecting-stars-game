@@ -2,6 +2,7 @@ import imgSky from '../assets/sky.png';
 import imgStar from '../assets/star.png';
 import imgPlatform from '../assets/platform.png';
 import imgDude from '../assets/dude.png';
+import imgBomb from '../assets/bomb.png';
 
 export class Preloader extends Phaser.Scene {
   platforms: Phaser.Physics.Arcade.StaticGroup | null;
@@ -9,6 +10,9 @@ export class Preloader extends Phaser.Scene {
   cursors: Phaser.Types.Input.Keyboard.CursorKeys | null;
   scoreText: Phaser.GameObjects.Text | null;
   score: number;
+  gameOver: boolean;
+  stars: Phaser.Physics.Arcade.Group | null;
+  bombs: Phaser.Physics.Arcade.Group | null;
 
   constructor() {
     super({
@@ -19,12 +23,16 @@ export class Preloader extends Phaser.Scene {
     this.cursors = null;
     this.scoreText = null;
     this.score = 0;
+    this.gameOver = false;
+    this.stars = null;
+    this.bombs = null;
   }
 
   preload() {
     this.load.image("sky", imgSky);
     this.load.image("star", imgStar);
     this.load.image("ground", imgPlatform);
+    this.load.image("bomb", imgBomb);
     this.load.spritesheet("dude", imgDude, {frameWidth: 32, frameHeight: 48});
   }
 
@@ -66,21 +74,25 @@ export class Preloader extends Phaser.Scene {
     this.physics.add.collider(this.player, this.platforms);
     this.cursors = this.input.keyboard.createCursorKeys();
 
-    const stars = this.physics.add.group({
+    this.stars = this.physics.add.group({
       key: "star",
       repeat: 11,
       setXY: {x: 12, y: 0, stepX: 70}
     });
 
     // TODO: remove any here
-    stars.children.iterate((child: any) => {
+    this.stars.children.iterate((child: any) => {
       child.setBounceY(Phaser.Math.FloatBetween(0.4, 0.8));
     });
 
-    this.physics.add.collider(stars, this.platforms);
-    this.physics.add.overlap(this.player, stars, this.collectStar, undefined, this);
+    this.physics.add.collider(this.stars, this.platforms);
+    this.physics.add.overlap(this.player, this.stars, this.collectStar, undefined, this);
 
     this.scoreText = this.add.text(16, 16, 'score: 0', {fontSize: '32px', fill: '#000'});
+
+    this.bombs = this.physics.add.group();
+    this.physics.add.collider(this.bombs, this.platforms);
+    this.physics.add.collider(this.player, this.bombs, this.hitBomb, undefined, this);
   }
 
   update() {
@@ -105,9 +117,35 @@ export class Preloader extends Phaser.Scene {
   }
 
   // TODO: remove any here
-  collectStar(_: any, star: any) {
+  collectStar(player: any, star: any) {
     star.disableBody(true, true);
     this.score += 10;
     this.scoreText!.setText('Score: ' + this.score);
+
+    if (this.stars!.countActive(true) === 0) {
+      // TODO: remove any here
+      this.stars!.children.iterate((child: any) => {
+        child.enableBody(true, child.x, 0, true, true);
+      });
+
+      let x = (player.x < 400) ? Phaser.Math.Between(400, 800) : Phaser.Math.Between(0, 400);
+
+      let bomb = this.bombs!.create(x, 16, 'bomb');
+      bomb.setBounce(1);
+      bomb.setCollideWorldBounds(true);
+      bomb.setVelocity(Phaser.Math.Between(-200, 200), 20);
+    }
+  }
+
+  // TODO: remove any here
+  hitBomb(player: any) {
+    this.physics.pause();
+    player!.setTint(0xff0000);
+    player!.anims.play("turn");
+    this.gameOver = true;
+    this.add.text(300, 260, "Game Over!", {
+      fontSize: '32px',
+      fill: '#000'
+    });
   }
 }
