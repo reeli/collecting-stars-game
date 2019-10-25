@@ -6,6 +6,7 @@ import imgDude from '../assets/dude.png';
 export class Preloader extends Phaser.Scene {
   platforms: Phaser.Physics.Arcade.StaticGroup | null;
   player: Phaser.Physics.Arcade.Sprite | null;
+  cursors: Phaser.Types.Input.Keyboard.CursorKeys | null;
 
   constructor() {
     super({
@@ -13,13 +14,14 @@ export class Preloader extends Phaser.Scene {
     });
     this.platforms = null;
     this.player = null;
+    this.cursors = null;
   }
 
   preload() {
     this.load.image("sky", imgSky);
     this.load.image("star", imgStar);
     this.load.image("ground", imgPlatform);
-    this.load.image("dude", imgDude);
+    this.load.spritesheet("dude", imgDude, {frameWidth: 32, frameHeight: 48});
   }
 
   create() {
@@ -37,7 +39,6 @@ export class Preloader extends Phaser.Scene {
     this.player = this.physics.add.sprite(100, 450, 'dude');
     this.player.setBounce(0.2);
     this.player.setCollideWorldBounds(true);
-    this.player.setGravityY(100000);
 
     this.anims.create({
       key: 'left',
@@ -58,5 +59,31 @@ export class Preloader extends Phaser.Scene {
       frameRate: 10,
       repeat: -1
     });
+
+    // ?
+    this.physics.add.collider(this.player, this.platforms);
+    this.cursors = this.input.keyboard.createCursorKeys();
+  }
+
+  update() {
+    if (!this.cursors || !this.player) {
+      return;
+    }
+
+    if (this.cursors.left!.isDown) {
+      this.player.setVelocityX(-160);
+
+      this.player.anims.play('left', true);
+    } else if (this.cursors.right!.isDown) {
+      this.player.setVelocityX(160);
+      this.player.anims.play('right', true);
+    } else {
+      this.player.setVelocityX(0);
+      this.player.anims.play('turn');
+    }
+
+    if (this.cursors.up!.isDown && this.player.body.touching.down) {
+      this.player.setVelocityY(-350);
+    }
   }
 }
