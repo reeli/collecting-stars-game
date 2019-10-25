@@ -1,21 +1,21 @@
 {
-  "name": "@reeli/plane-war",
+  "name": "@reeli/collecting-stars-game",
   "version": "1.0.0",
-  "description": "",
+  "description": "Collecting Stars Game",
   "main": "index.js",
   "scripts": {
     "start": "webpack-dev-server --config=webpack.config.ts"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/reeli/plane-war.git"
+    "url": "git+https://github.com/reeli/collecting-stars-game.git"
   },
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/reeli/plane-war/issues"
+    "url": "https://github.com/reeli/collecting-stars-game/issues"
   },
-  "homepage": "https://github.com/reeli/plane-war#readme",
+  "homepage": "https://github.com/reeli/collecting-stars-game#readme",
   "dependencies": {
     "phaser": "3.20.1"
   },
