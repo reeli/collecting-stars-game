@@ -7,6 +7,8 @@ export class Preloader extends Phaser.Scene {
   platforms: Phaser.Physics.Arcade.StaticGroup | null;
   player: Phaser.Physics.Arcade.Sprite | null;
   cursors: Phaser.Types.Input.Keyboard.CursorKeys | null;
+  scoreText: Phaser.GameObjects.Text | null;
+  score: number;
 
   constructor() {
     super({
@@ -15,6 +17,8 @@ export class Preloader extends Phaser.Scene {
     this.platforms = null;
     this.player = null;
     this.cursors = null;
+    this.scoreText = null;
+    this.score = 0;
   }
 
   preload() {
@@ -26,8 +30,6 @@ export class Preloader extends Phaser.Scene {
 
   create() {
     this.add.image(this.sys.canvas.width / 2, this.sys.canvas.height / 2, "sky");
-    this.add.image(this.sys.canvas.width / 2, this.sys.canvas.height / 2, "star");
-
     this.platforms = this.physics.add.staticGroup();
 
     this.platforms.create(400, 568, 'ground').setScale(2).refreshBody();
@@ -63,27 +65,49 @@ export class Preloader extends Phaser.Scene {
     // ?
     this.physics.add.collider(this.player, this.platforms);
     this.cursors = this.input.keyboard.createCursorKeys();
+
+    const stars = this.physics.add.group({
+      key: "star",
+      repeat: 11,
+      setXY: {x: 12, y: 0, stepX: 70}
+    });
+
+    // TODO: remove any here
+    stars.children.iterate((child: any) => {
+      child.setBounceY(Phaser.Math.FloatBetween(0.4, 0.8));
+    });
+
+    this.physics.add.collider(stars, this.platforms);
+    this.physics.add.overlap(this.player, stars, this.collectStar, undefined, this);
+
+    this.scoreText = this.add.text(16, 16, 'score: 0', {fontSize: '32px', fill: '#000'});
   }
 
   update() {
-    if (!this.cursors || !this.player) {
-      return;
-    }
+    const cursors = this.cursors!;
+    const player = this.player!;
 
-    if (this.cursors.left!.isDown) {
-      this.player.setVelocityX(-160);
+    if (cursors.left!.isDown) {
+      player.setVelocityX(-160);
 
-      this.player.anims.play('left', true);
-    } else if (this.cursors.right!.isDown) {
-      this.player.setVelocityX(160);
-      this.player.anims.play('right', true);
+      player.anims.play('left', true);
+    } else if (cursors.right!.isDown) {
+      player.setVelocityX(160);
+      player.anims.play('right', true);
     } else {
-      this.player.setVelocityX(0);
-      this.player.anims.play('turn');
+      player.setVelocityX(0);
+      player.anims.play('turn');
     }
 
-    if (this.cursors.up!.isDown && this.player.body.touching.down) {
-      this.player.setVelocityY(-350);
+    if (cursors.up!.isDown && player.body.touching.down) {
+      player.setVelocityY(-350);
     }
+  }
+
+  // TODO: remove any here
+  collectStar(_: any, star: any) {
+    star.disableBody(true, true);
+    this.score += 10;
+    this.scoreText!.setText('Score: ' + this.score);
   }
 }
