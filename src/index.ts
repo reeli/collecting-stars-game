@@ -9,5 +9,12 @@ new Phaser.Game({
   scene: [
     Preloader,
     Main
-  ]
+  ],
+  physics: {
+    default: "arcade",
+    arcade: {
+      gravity: {y: 300},
+      debug: false
+    }
+  }
 });
